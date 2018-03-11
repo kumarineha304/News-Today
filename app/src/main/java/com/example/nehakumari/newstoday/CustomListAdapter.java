@@ -1,7 +1,6 @@
 package com.example.nehakumari.newstoday;
 
 import android.app.Activity;
-import android.content.res.Resources;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.AsyncTask;
@@ -12,17 +11,10 @@ import android.view.ViewGroup;
 import android.widget.ArrayAdapter;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import com.example.nehakumari.newstoday.Model.News_Data;
-import com.squareup.picasso.Picasso;
 
-import java.io.IOException;
 import java.io.InputStream;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 
 /*A Custom adapter class to set the values to the list view*/
@@ -79,7 +71,7 @@ public class CustomListAdapter extends ArrayAdapter<News_Data> {
 
     /*An async task for processing the image url and to prevent the UI thread from getting blocked*/
     private class DownloadImageTask extends AsyncTask<String, Void, Bitmap> {
-        ImageView ImgView;
+    private ImageView ImgView;
 
         public DownloadImageTask(ImageView ImgView) {
             this.ImgView = ImgView;

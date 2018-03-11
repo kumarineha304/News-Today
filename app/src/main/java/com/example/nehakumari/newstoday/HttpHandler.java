@@ -14,7 +14,7 @@ import java.net.URL;
 
 
 /**
- * Created by NEHA KUMARI on 11-03-2018.
+ * A class to handle GET http request.
  */
 
 public class HttpHandler {
