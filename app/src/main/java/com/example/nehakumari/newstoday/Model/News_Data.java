@@ -1,19 +1,10 @@
 package com.example.nehakumari.newstoday.Model;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
-import java.util.List;
-
 /**
  * Created by NEHA KUMARI on 03-03-2018.
  */
 
 public class News_Data {
-
-    //private List<Source> sourceList;
-    @SerializedName("source")
-    @Expose
     private Source source;
     private String author;
     private String title;
@@ -21,6 +12,10 @@ public class News_Data {
     private String url;
     private String urlToImage;
     private String publishedAt;
+
+    public News_Data(){
+
+    }
 
     public News_Data(Source source,String author, String title, String description, String url, String urlToImage, String publishedAt) {
       this.source = source;

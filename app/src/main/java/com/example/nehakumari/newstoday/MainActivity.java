@@ -1,88 +1,122 @@
 package com.example.nehakumari.newstoday;
 
 import android.content.Intent;
+import android.os.AsyncTask;
 import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
 import android.widget.AdapterView;
+import android.widget.ListAdapter;
 import android.widget.ListView;
-import android.widget.Toast;
+import android.widget.ProgressBar;
 
 import com.example.nehakumari.newstoday.Model.News;
 import com.example.nehakumari.newstoday.Model.News_Data;
+import com.example.nehakumari.newstoday.Model.Source;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.TooManyListenersException;
 
-import retrofit2.Call;
-import retrofit2.Callback;
-import retrofit2.Response;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
-
+/*The MainActivity class which process the JSON data and parse them and display the list of news to the user*/
 public class MainActivity extends AppCompatActivity {
 
     ListView listView;
-    CustomListAdapter customListAdapter;
-    private List<News_Data> news_dataList;
+    ListAdapter customListAdapter;
+    ProgressBar progressBar;
+   private List<News_Data> news_dataList;
+    private String url = "https://newsapi.org/v2/everything?sources=the-times-of-india&apiKey=b05e734cb63a4ff0934999281cbcdaf0";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        news_dataList = new ArrayList<>();
 
-        //news_dataList = new ArrayList<>();
+        listView = (ListView) findViewById(R.id.list_view1);
+        progressBar = (ProgressBar)findViewById(R.id.home_progress_bar);
 
-        listView = (ListView)findViewById(R.id.list_view1);
+        new GetNews().execute();
 
-        customListAdapter= new CustomListAdapter(MainActivity.this,new ArrayList<News_Data>());
+           }
 
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl(NewsApi_Interface.BASE_URL)
-                .addConverterFactory(GsonConverterFactory.create())
-                .build();
+    /*
+    AsyncTasks to get json data by parsing
+     */
+    private class GetNews extends AsyncTask<Void, Void, Void> {
 
-        NewsApi_Interface api_interface = retrofit.create(NewsApi_Interface.class);
+        @Override
+        protected void onPreExecute() {
+            progressBar.setVisibility(View.VISIBLE);
+        }
 
-        Call<News> call = api_interface.getNews_Data();
+        @Override
+        protected Void doInBackground(Void... arg0) {
+            HttpHandler sh = new HttpHandler();
+            String jsonstr = sh.makeServiceCall(url);
 
-        call.enqueue(new Callback<News>() {
-            @Override
-            public void onResponse(Call<News> call, Response<News> response) {
+            Log.e("MainActivity ", " " + jsonstr);
+            if (jsonstr != null) {
+                try {
+                    JSONObject jsonObject = new JSONObject(jsonstr);
+                    String status = jsonObject.getString("status");
+                    int totalResults = jsonObject.getInt("totalResults");
+                    JSONArray articles = jsonObject.getJSONArray("articles");
 
-                News news = response.body();
-                news_dataList = response.body().getNews_data();
-                Log.d("status"," "+news.getStatus());
-                Log.d("total results "," "+news.gettotalResults());
-                Log.d("articles "," "+news.getNews_data());
-                Toast.makeText(getApplicationContext()," on Response "+news.getStatus(),Toast.LENGTH_LONG).show();
-                customListAdapter= new CustomListAdapter(MainActivity.this,news_dataList);
-                listView.setAdapter(customListAdapter);
-                customListAdapter.notifyDataSetChanged();
 
-               listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                    for (int i = 0; i < articles.length(); i++) {
+                        JSONObject a = articles.getJSONObject(i);
+                        JSONObject source = a.getJSONObject("source");
+                        String id = source.getString("id");
+                        String name = source.getString("name");
 
-                        Intent intent = new Intent(MainActivity.this,Detail_Activity.class);
-                        String message = "this is a detail activity";
-                        intent.putExtra("url",news_dataList.get(position).getUrl());
-                       startActivity(intent);
+                        String author = a.getString("author");
+                        String title = a.getString("title");
+                        String description = a.getString("description");
+                        String url = a.getString("url");
+                        String urlToImage = a.getString("urlToImage");
+                        String publishedAt = a.getString("publishedAt");
 
+                        Source src = new Source(id,name);
+
+                        News_Data news_data = new News_Data(src,author,title,description,url,urlToImage,publishedAt);
+
+                        news_dataList.add(news_data);
 
                     }
-                });
+                    News news = new News(status,totalResults,news_dataList);
+
+                } catch (JSONException e) {
+                    Log.e("MainActivity ", "JSONExcepition " + e.getMessage());
+                }
             }
+            return null;
+        }
 
-            @Override
-            public void onFailure(Call<News> call, Throwable t) {
-                Toast.makeText(getApplicationContext(),"onFailure Called",Toast.LENGTH_LONG).show();
-            }
-        });
+        @Override
+        protected void onPostExecute(Void result) {
+            super.onPostExecute(result);
+            progressBar.setVisibility(View.GONE);
+
+            customListAdapter= new CustomListAdapter(MainActivity.this,news_dataList);
+            listView.setAdapter(customListAdapter);
+
+            listView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+                @Override
+                public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+
+                    Intent intent = new Intent(MainActivity.this,Detail_Activity.class);
+                    intent.putExtra("url",news_dataList.get(position).getUrl());
+                    startActivity(intent);
 
 
+                }
+            });
+        }
     }
 
 }

@@ -2,9 +2,6 @@ package com.example.nehakumari.newstoday.Model;
 
 import android.util.Log;
 
-import com.google.gson.annotations.Expose;
-import com.google.gson.annotations.SerializedName;
-
 import java.util.List;
 
 /**
@@ -15,8 +12,6 @@ public class News {
 
     private String status;
     private int totalResults;
-    @SerializedName("articles")
-    @Expose
     private List<News_Data> news_data;
 
     public News() {
